@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Phản Xạ Thẻ Bài - Siêu Trí Nhớ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #fff;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* GIAO DIỆN TRÀN MÀN HÌNH - KHÔNG DÙNG KHUNG CỐ ĐỊNH */
+        .wrapper-layout {
+            width: 100%;
+            max-width: 800px; /* Mở rộng không gian hiển thị tính năng */
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            font-size: 28px;
+            text-align: center;
+            color: #ffcc00;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 16px;
+            color: #e0e0e0;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid #ffcc00;
+            padding-left: 8px;
+        }
+
+        /* Các Màn Hình */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Lưới chứa nút cấu hình */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* Giàn hàng ngang rộng rãi trên PC */
+            gap: 10px;
+            width: 100%;
+        }
+
+        .mode-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        /* Nút bấm thiết kế chuẩn Modern PC */
+        .btn {
+            background: linear-gradient(145deg, #333, #222);
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 14px 5px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            color: #fff;
+            border-color: #666;
+        }
+
+        .btn-fast {
+            color: #ff9f43;
+            border-color: #554025;
+        }
+
+        /* Trạng thái nút được chọn */
+        .btn.selected {
+            background: linear-gradient(145deg, #ff4e50, #f9d423) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(255, 78, 80, 0.5) !important;
+        }
+
+        /* MÀN HÌNH CHƠI GAME PHẢN XẠ */
+        .stats {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px;
+            background-color: #252525;
+            border-radius: 10px;
+            border: 1px solid #3d3d3d;
+        }
+
+        /* Vùng chứa bài: Căn giữa tuyệt đối bằng Flexbox */
+        .card-area {
+            width: 100%;
+            height: 55vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* KHUNG ĐỠ BÀI: Sử dụng Flexbox để tự động co giãn và căn giữa hoàn hảo */
+        .card-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 380px;
+            width: auto; /* Để chiều rộng tự động co giãn theo số lượng bài */
+        }
+
+        /* Thiết lập lá bài chuẩn theo tỷ lệ ảnh mẫu */
+        .card {
+            height: 100%;
+            width: 240px; 
+            border-radius: 14px;
+            box-shadow: -5px 5px 15px rgba(0,0,0,0.6);
+            background-color: #fff;
+            object-fit: cover;
+            /* Loại bỏ position: absolute để Flexbox tự sắp xếp hàng ngang */
+            position: relative; 
+            flex-shrink: 0;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 600px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 100%;
+            background-color: #38ef7d;
+            transition: width linear;
+        }
+
+        .end-title {
+            font-size: 32px;
+            color: #38ef7d;
+            font-weight: bold;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper-layout">
+        
+        <div id="screen-home" class="screen active">
+            <h1>Cấu Hình Trận Đấu</h1>
+            
+            <div style="width: 100%; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                <h3>1. Chọn Tốc Độ Phản Xạ</h3>
+                <div id="time-group" class="grid-container">
+                    <button class="btn" data-time="5.0" onclick="setTimeMode(5.0)">5.0s</button>
+                    <button class="btn" data-time="4.5" onclick="setTimeMode(4.5)">4.5s</button>
+                    <button class="btn" data-time="4.0" onclick="setTimeMode(4.0)">4.0s</button>
+                    <button class="btn" data-time="3.5" onclick="setTimeMode(3.5)">3.5s</button>
+                    <button class="btn" data-time="3.0" onclick="setTimeMode(3.0)">3.0s</button>
+                    <button class="btn" data-time="2.5" onclick="setTimeMode(2.5)">2.5s</button>
+                    <button class="btn" data-time="2.0" onclick="setTimeMode(2.0)">2.0s</button>
+                    <button class="btn" data-time="1.5" onclick="setTimeMode(1.5)">1.5s</button>
+                    <button class="btn" data-time="1.0" onclick="setTimeMode(1.0)">1.0s</button>
+                    <button class="btn btn-fast" data-time="0.9" onclick="setTimeMode(0.9)">0.9s</button>
+                    <button class="btn btn-fast" data-time="0.8" onclick="toggleSelection(this); setTimeMode(0.8)">0.8s</button>
+                    <button class="btn btn-fast" data-time="0.7" onclick="setTimeMode(0.7)">0.7s</button>
+                    <button class="btn btn-fast" data-time="0.6" onclick="setTimeMode(0.6)">0.6s</button>
+                    <button class="btn btn-fast" data-time="0.5" onclick="setTimeMode(0.5)">0.5s</button>
+                </div>
+
+                <h3 style="margin-top: 35px;">2. Chọn Số Lá Xuất Hiện</h3>
+                <div id="mode-group" class="grid-container mode-grid">
+                    <button class="btn" data-mode="2" onclick="setCardsMode(2)">2 Lá Bài</button>
+                    <button class="btn" data-mode="3" onclick="setCardsMode(3)">3 Lá Bài</button>
+                    <button class="btn" data-mode="4" onclick="setCardsMode(4)">4 Lá Bài</button>
+                    <button class="btn" data-mode="6" onclick="setCardsMode(6)">6 Lá Bài</button>
+                </div>
+            </div>
+            
+            <button class="btn" style="width: 100%; max-width: 400px; padding: 16px; font-size: 18px; color:#fff; background: linear-gradient(145deg, #00c6ff, #0072ff); border: none; margin: 30px auto 0 auto;" onclick="goToGameScreen()">
+                TIẾP THEO ➔
+            </button>
+        </div>
+
+        <div id="screen-game" class="screen">
+            <div class="stats">
+                <span id="txt-level">Tốc độ: 5.0s</span>
+                <span id="txt-mode">Chế độ: 2 lá</span>
+                <span id="txt-progress">Đã lật: 0/26</span>
+            </div>
+
+            <div class="card-area">
+                <div class="card-wrapper" id="card-block" style="display: none;">
+                    <img id="img-card1" class="card" src="" alt="Card 1">
+                    <img id="img-card2" class="card" src="" alt="Card 2">
+                    <img id="img-card3" class="card" src="" alt="Card 3">
+                    <img id="img-card4" class="card" src="" alt="Card 4">
+                    <img id="img-card5" class="card" src="" alt="Card 5">
+                    <img id="img-card6" class="card" src="" alt="Card 6">
+                </div>
+                <button id="btn-start" class="btn" style="padding: 22px 60px; font-size: 24px; color: #fff; background: linear-gradient(145deg, #11998e, #38ef7d); border: none;" onclick="startGame()">BẮT ĐẦU</button>
+            </div>
+
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+                <div class="progress-bar-container">
+                    <div id="timer-bar" class="progress-bar"></div>
+                </div>
+                <button class="btn" style="width: 100%; max-width: 600px; margin-top: 20px; background: #333;" onclick="goHome()">Quay về cấu hình</button>
+            </div>
+        </div>
+
+        <div id="screen-end" class="screen">
+            <div class="end-title">HOÀN THÀNH!</div>
+            <div id="txt-end-summary" style="font-size: 18px; text-align: center; color: #aaa; margin: 20px 0;">Bạn đã hoàn thành xuất sắc chuỗi bài!</div>
+            <div style="display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 400px;">
+                <button class="btn" style="background: linear-gradient(145deg, #11998e, #38ef7d); color: white; border: none; padding: 15px;" onclick="restartGameNow()">Tiếp tục lật luôn</button>
+                <button class="btn" style="background: linear-gradient(145deg, #00c6ff, #0072ff); color: white; border: none; padding: 15px;" onclick="goHome()">Quay về cấu hình</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentLevelTime = 5.0; 
+        let cardsPerTurn = 2; 
+        let deck = [];
+        let turnIndex = 0;
+        let maxTurns = 26; 
+        let gameInterval = null;
+
+        window.onload = function() {
+            setTimeMode(5.0);
+            setCardsMode(2);
+        };
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function setTimeMode(time) {
+            currentLevelTime = time;
+            const timeButtons = document.querySelectorAll('#time-group .btn');
+            timeButtons.forEach(btn => btn.classList.remove('selected'));
+            
+            const targetBtn = document.querySelector(`#time-group .btn[data-time="${time.toFixed(1)}"]`) || 
+                              document.querySelector(`#time-group .btn[data-time="${time}"]`);
+            if (targetBtn) targetBtn.classList.add('selected');
+        }
+
+        function setCardsMode(mode) {
+            cardsPerTurn = mode;
+            const modeButtons = document.querySelectorAll('#mode-group .btn');
+            modeButtons.forEach(btn => btn.classList.remove('selected'));
+            
+            const targetBtn = document.querySelector(`#mode-group .btn[data-mode="${mode}"]`);
+            if (targetBtn) targetBtn.classList.add('selected');
+        }
+
+        function goToGameScreen() {
+            maxTurns = Math.floor(52 / cardsPerTurn); 
+            
+            document.getElementById('txt-level').innerText = `Tốc độ: ${currentLevelTime.toFixed(1)}s`;
+            document.getElementById('txt-mode').innerText = `Chế độ: ${cardsPerTurn} lá`;
+            document.getElementById('txt-progress').innerText = `Đã lật: 0/${maxTurns}`;
+            
+            document.getElementById('btn-start').style.display = 'block';
+            document.getElementById('card-block').style.display = 'none';
+            
+            setupCardLayout();
+            resetProgressBar();
+            switchScreen('screen-game'); 
+        }
+
+        // LOGIC ĐỊNH VỊ MỚI: TẬP TRUNG VÀO FLEXBOX CỦA CSS ĐỂ CĂN GIỮA HOÀN HẢO
+        function setupCardLayout() {
+            const cardWidth = 240;       // Độ rộng lá bài
+            const cardOffset = 45;       // Khoảng lộ ra của lá bài trước (tính từ mép trái)
+            const overlapX = cardWidth - cardOffset; // Khoảng bài dịch lùi sang trái để gối đè (= 195px)
+
+            for (let i = 1; i <= 6; i++) {
+                const cardEl = document.getElementById(`img-card${i}`);
+                if (i <= cardsPerTurn) {
+                    cardEl.style.display = 'block';
+                    cardEl.style.zIndex = i; 
+                    
+                    // Reset lại các thuộc tính định vị tuyệt đối cũ
+                    cardEl.style.left = 'auto';
+                    
+                    // Từ lá bài thứ 2 trở đi, áp dụng margin-left âm để tạo hiệu ứng xếp chồng đè lớp lên nhau
+                    if (i > 1) {
+                        cardEl.style.marginLeft = `-${overlapX}px`;
+                    } else {
+                        cardEl.style.marginLeft = '0px';
+                    }
+                } else {
+                    cardEl.style.display = 'none'; 
+                }
+            }
+        }
+
+        function initDeck() {
+            deck = [];
+            const totalCardsToUse = maxTurns * cardsPerTurn; 
+            for (let i = 1; i <= 52; i++) deck.push(i);
+            
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            deck = deck.slice(0, totalCardsToUse);
+            turnIndex = 0;
+        }
+
+        function startGame() {
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('card-block').style.display = 'flex'; // Chuyển từ 'block' sang 'flex'
+            initDeck();
+            nextTurn();
+        }
+
+        function nextTurn() {
+            if (turnIndex >= maxTurns) { 
+                clearInterval(gameInterval);
+                document.getElementById('txt-end-summary').innerText = `Bạn đã hoàn thành xuất sắc ${maxTurns * cardsPerTurn} lá bài ở chế độ ${cardsPerTurn} lá!`;
+                switchScreen('screen-end');
+                return;
+            }
+
+            for (let i = 0; i < cardsPerTurn; i++) {
+                const cardId = deck[turnIndex * cardsPerTurn + i];
+                document.getElementById(`img-card${i + 1}`).src = `${cardId}.png`;
+            }
+
+            document.getElementById('txt-progress').innerText = `Đã lật: ${turnIndex + 1}/${maxTurns}`;
+            triggerProgressBar();
+            turnIndex++;
+        }
+
+        function triggerProgressBar() {
+            const bar = document.getElementById('timer-bar');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+            bar.offsetHeight; 
+            bar.style.transition = `width ${currentLevelTime}s linear`;
+            bar.style.width = '0%';
+
+            clearInterval(gameInterval);
+            gameInterval = setInterval(() => {
+                nextTurn();
+            }, currentLevelTime * 1000);
+        }
+
+        function resetProgressBar() {
+            const bar = document.getElementById('timer-bar');
+            bar.style.transition = 'none';
+            bar.style.width = '100%';
+        }
+
+        function restartGameNow() {
+            document.getElementById('btn-start').style.display = 'none';
+            document.getElementById('card-block').style.display = 'flex'; // Đảm bảo hiển thị dạng flex
+            switchScreen('screen-game');
+            initDeck();
+            nextTurn();
+        }
+
+        function goHome() {
+            clearInterval(gameInterval);
+            switchScreen('screen-home');
+        }
+    </script>
+</body>
+</html>
