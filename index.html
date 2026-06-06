@@ -70,6 +70,12 @@
             display: flex;
         }
 
+        /* Tối ưu riêng cho màn hình chính gom vào giữa */
+        #screen-home {
+            justify-content: center;
+            gap: 20px;
+        }
+
         /* Lưới chứa nút cấu hình */
         .grid-container {
             display: grid;
@@ -78,8 +84,9 @@
             width: 100%;
         }
 
+        /* Cập nhật thành 5 cột để vừa vặn khi thêm nút "1 Lá Bài" */
         .mode-grid {
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
         }
 
         /* Nút bấm thiết kế chuẩn Modern PC */
@@ -193,7 +200,7 @@
         <div id="screen-home" class="screen active">
             <h1>Cấu Hình Trận Đấu</h1>
             
-            <div style="width: 100%; flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+            <div style="width: 100%; display: flex; flex-direction: column; justify-content: center;">
                 <h3>1. Chọn Tốc Độ Phản Xạ</h3>
                 <div id="time-group" class="grid-container">
                     <button class="btn" data-time="5.0" onclick="setTimeMode(5.0)">5.0s</button>
@@ -206,7 +213,7 @@
                     <button class="btn" data-time="1.5" onclick="setTimeMode(1.5)">1.5s</button>
                     <button class="btn" data-time="1.0" onclick="setTimeMode(1.0)">1.0s</button>
                     <button class="btn btn-fast" data-time="0.9" onclick="setTimeMode(0.9)">0.9s</button>
-                    <button class="btn btn-fast" data-time="0.8" onclick="toggleSelection(this); setTimeMode(0.8)">0.8s</button>
+                    <button class="btn btn-fast" data-time="0.8" onclick="setTimeMode(0.8)">0.8s</button>
                     <button class="btn btn-fast" data-time="0.7" onclick="setTimeMode(0.7)">0.7s</button>
                     <button class="btn btn-fast" data-time="0.6" onclick="setTimeMode(0.6)">0.6s</button>
                     <button class="btn btn-fast" data-time="0.5" onclick="setTimeMode(0.5)">0.5s</button>
@@ -214,6 +221,7 @@
 
                 <h3 style="margin-top: 35px;">2. Chọn Số Lá Xuất Hiện</h3>
                 <div id="mode-group" class="grid-container mode-grid">
+                    <button class="btn" data-mode="1" onclick="setCardsMode(1)">1 Lá Bài</button>
                     <button class="btn" data-mode="2" onclick="setCardsMode(2)">2 Lá Bài</button>
                     <button class="btn" data-mode="3" onclick="setCardsMode(3)">3 Lá Bài</button>
                     <button class="btn" data-mode="4" onclick="setCardsMode(4)">4 Lá Bài</button>
@@ -221,7 +229,7 @@
                 </div>
             </div>
             
-            <button class="btn" style="width: 100%; max-width: 400px; padding: 16px; font-size: 18px; color:#fff; background: linear-gradient(145deg, #00c6ff, #0072ff); border: none; margin: 30px auto 0 auto;" onclick="goToGameScreen()">
+            <button class="btn" style="width: 100%; max-width: 400px; padding: 16px; font-size: 18px; color:#fff; background: linear-gradient(145deg, #00c6ff, #0072ff); border: none; margin: 10px auto 0 auto;" onclick="goToGameScreen()">
                 TIẾP THEO ➔
             </button>
         </div>
@@ -271,11 +279,23 @@
         let turnIndex = 0;
         let maxTurns = 26; 
         let gameInterval = null;
+        const preloadedImages = []; // Mảng lưu trữ tài nguyên ảnh đã tải trước
 
         window.onload = function() {
             setTimeMode(5.0);
             setCardsMode(2);
+            preloadCardImages(); // Tự động kích hoạt tải ngầm ngay khi vào link web
         };
+
+        // Hàm xử lý tải ngầm dữ liệu hình ảnh vào bộ nhớ cache trình duyệt
+        function preloadCardImages() {
+            for (let i = 1; i <= 52; i++) {
+                const img = new Image();
+                img.src = `${i}.png`;
+                preloadedImages.push(img);
+            }
+            console.log("Đã kích hoạt tải ngầm 52 lá bài.");
+        }
 
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -316,22 +336,18 @@
             switchScreen('screen-game'); 
         }
 
-        // LOGIC ĐỊNH VỊ MỚI: TẬP TRUNG VÀO FLEXBOX CỦA CSS ĐỂ CĂN GIỮA HOÀN HẢO
         function setupCardLayout() {
-            const cardWidth = 240;       // Độ rộng lá bài
-            const cardOffset = 45;       // Khoảng lộ ra của lá bài trước (tính từ mép trái)
-            const overlapX = cardWidth - cardOffset; // Khoảng bài dịch lùi sang trái để gối đè (= 195px)
+            const cardWidth = 240;       
+            const cardOffset = 45;       
+            const overlapX = cardWidth - cardOffset; 
 
             for (let i = 1; i <= 6; i++) {
                 const cardEl = document.getElementById(`img-card${i}`);
                 if (i <= cardsPerTurn) {
                     cardEl.style.display = 'block';
                     cardEl.style.zIndex = i; 
-                    
-                    // Reset lại các thuộc tính định vị tuyệt đối cũ
                     cardEl.style.left = 'auto';
                     
-                    // Từ lá bài thứ 2 trở đi, áp dụng margin-left âm để tạo hiệu ứng xếp chồng đè lớp lên nhau
                     if (i > 1) {
                         cardEl.style.marginLeft = `-${overlapX}px`;
                     } else {
@@ -358,7 +374,7 @@
 
         function startGame() {
             document.getElementById('btn-start').style.display = 'none';
-            document.getElementById('card-block').style.display = 'flex'; // Chuyển từ 'block' sang 'flex'
+            document.getElementById('card-block').style.display = 'flex'; 
             initDeck();
             nextTurn();
         }
@@ -403,7 +419,7 @@
 
         function restartGameNow() {
             document.getElementById('btn-start').style.display = 'none';
-            document.getElementById('card-block').style.display = 'flex'; // Đảm bảo hiển thị dạng flex
+            document.getElementById('card-block').style.display = 'flex'; 
             switchScreen('screen-game');
             initDeck();
             nextTurn();
