@@ -168,23 +168,6 @@
             flex-shrink: 0;
         }
 
-        .progress-bar-container {
-            width: 100%;
-            max-width: 600px;
-            height: 10px;
-            background-color: #333;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 0 auto;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 100%;
-            background-color: #38ef7d;
-            transition: width linear;
-        }
-
         .end-title {
             font-size: 32px;
             color: #38ef7d;
@@ -254,9 +237,6 @@
             </div>
 
             <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-                <div class="progress-bar-container">
-                    <div id="timer-bar" class="progress-bar"></div>
-                </div>
                 <button class="btn" style="width: 100%; max-width: 600px; margin-top: 20px; background: #333;" onclick="goHome()">Quay về cấu hình</button>
             </div>
         </div>
@@ -332,7 +312,6 @@
             document.getElementById('card-block').style.display = 'none';
             
             setupCardLayout();
-            resetProgressBar();
             switchScreen('screen-game'); 
         }
 
@@ -393,28 +372,15 @@
             }
 
             document.getElementById('txt-progress').innerText = `Đã lật: ${turnIndex + 1}/${maxTurns}`;
-            triggerProgressBar();
+            triggerGameTimer();
             turnIndex++;
         }
 
-        function triggerProgressBar() {
-            const bar = document.getElementById('timer-bar');
-            bar.style.transition = 'none';
-            bar.style.width = '100%';
-            bar.offsetHeight; 
-            bar.style.transition = `width ${currentLevelTime}s linear`;
-            bar.style.width = '0%';
-
+        function triggerGameTimer() {
             clearInterval(gameInterval);
             gameInterval = setInterval(() => {
                 nextTurn();
             }, currentLevelTime * 1000);
-        }
-
-        function resetProgressBar() {
-            const bar = document.getElementById('timer-bar');
-            bar.style.transition = 'none';
-            bar.style.width = '100%';
         }
 
         function restartGameNow() {
