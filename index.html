@@ -382,23 +382,28 @@
             }
         }
 
+        // Tạo 1 bộ 52 lá đã được xáo trộn không trùng lặp
+        function createShuffledSingleDeck() {
+            const singleDeck = [];
+            for (let i = 1; i <= 52; i++) {
+                singleDeck.push(i);
+            }
+            for (let i = singleDeck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [singleDeck[i], singleDeck[j]] = [singleDeck[j], singleDeck[i]];
+            }
+            return singleDeck;
+        }
+
+        // Ghép nối tuần tự từng bộ 52 lá đã trộn (bộ 1 -> bộ 2 -> ... -> bộ n)
         function initDeck() {
             deck = [];
-            const totalCardsToUse = maxTurns * cardsPerTurn; 
-            
-            // Tạo đủ số lượng bộ bài theo cấu hình
             for (let d = 0; d < deckCount; d++) {
-                for (let i = 1; i <= 52; i++) {
-                    deck.push(i);
-                }
+                const singleDeck = createShuffledSingleDeck();
+                deck.push(...singleDeck);
             }
-            
-            // Xáo trộn ngẫu nhiên toàn bộ các lá bài
-            for (let i = deck.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [deck[i], deck[j]] = [deck[j], deck[i]];
-            }
-            
+
+            const totalCardsToUse = maxTurns * cardsPerTurn;
             deck = deck.slice(0, totalCardsToUse);
             turnIndex = 0;
         }
